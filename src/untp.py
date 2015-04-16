@@ -13,10 +13,14 @@ import plistparser
 def unpacker(_plistfile, _imagefile):
 	data = plistparser.parse(_plistfile)
 
+	if data["metadata"]["format"] != 2:
+		print "error: only support format : 2, current is", data["metadata"]["format"]
+		return -1
+
 	# check imagefile
 	if not _imagefile or _imagefile == "":
 		filepath,filename = os.path.split(_plistfile)
-		_imagefile = filepath + "/" + data["metadata"]["textureFileName"]
+		_imagefile = os.path.join(filepath , data["metadata"]["textureFileName"])
 
 	# create output dir
 	outpath,_ = os.path.splitext(_plistfile)
@@ -43,10 +47,11 @@ def unpacker(_plistfile, _imagefile):
 		dst_image.paste(temp_image, (sourceColorRect["x"],sourceColorRect["y"]), mask=0)
 		dst_image.save(outpath + "/" + name)
 
+	return 0
 
 def main():
 	if len(sys.argv) <= 1:
-		print "example: python unpacker.py test.plist"
+		print "example: python untp.py test.plist"
 		return -1
 
 	plistfile = ""
@@ -58,7 +63,7 @@ def main():
 	if len(sys.argv) >= 3:
 		imagefile = sys.argv[2]
 
-	unpacker(plistfile, imagefile)
+	return unpacker(plistfile, imagefile)
 
 if __name__ == '__main__':
 	main()
