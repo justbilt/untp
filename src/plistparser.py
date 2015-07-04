@@ -43,7 +43,10 @@ def parseDict(_element):
 		try:
 			key = iterator.next()
 			value = iterator.next()
-			data[key.text] = parseElement(value.tag, value)
+			if key.text == "properties":
+				data[key.text] = parseProperties(value)
+			else:
+				data[key.text] = parseElement(value.tag, value)
 		except StopIteration:
 			break
 
