@@ -4,23 +4,26 @@
 
 import os
 import sys
-import xml.etree.ElementTree as ET
 from PIL import Image
-import parse
-
-import plistparser
+from parse import parse
+from plistlib import readPlist
 
 def unpacker(_plistfile, _imagefile):
-	data = plistparser.parse(_plistfile)
+	try:
+		data = readPlist(_plistfile)
+	except Exception, e:
+		print "error: read plist file failed >", _plistfile
+		return 1
 
-	if data["metadata"]["format"] != 2:
-		print "error: only support format : 2, current is", data["metadata"]["format"]
+	# check file format
+	if data.metadata.format != 2:
+		print "error: only support format : 2, current is", data.metadata.format
 		return -1
 
 	# check imagefile
 	if not _imagefile or _imagefile == "":
 		filepath,filename = os.path.split(_plistfile)
-		_imagefile = os.path.join(filepath , data["metadata"]["textureFileName"])
+		_imagefile = os.path.join(filepath , data.metadata.textureFileName)
 
 	# create output dir
 	outpath,_ = os.path.splitext(_plistfile)
@@ -29,12 +32,12 @@ def unpacker(_plistfile, _imagefile):
 
 	src_image = Image.open(_imagefile)
 
-	for (name,config) in data["frames"].items():
+	for (name,config) in data.frames.items():
 		# parse config
-		frame           = parse.parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config["frame"])
-		sourceColorRect = parse.parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config["sourceColorRect"])
-		sourceSize      = parse.parse("{{{w:d},{h:d}}",config["sourceSize"])
-		rotated         = config["rotated"]
+		frame           = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config.frame)
+		sourceColorRect = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config.sourceColorRect)
+		sourceSize      = parse("{{{w:d},{h:d}}",config.sourceSize)
+		rotated         = config.rotated
 
 		# create temp image
 		src_rect = (frame["x"],frame["y"],frame["x"]+(frame["h"] if rotated else frame["w"]),frame["y"]+(frame["w"] if rotated else frame["h"]))
