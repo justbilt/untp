@@ -8,11 +8,11 @@ from PIL import Image
 from parse import parse
 from plistlib import readPlist
 
-def unpacker(_plistfile, _imagefile):
+def unpacker(plist_file, image_file):
 	try:
-		data = readPlist(_plistfile)
+		data = readPlist(plist_file)
 	except Exception, e:
-		print "error: read plist file failed >", _plistfile
+		print "error: read plist file failed >", plist_file
 		return 1
 
 	# check file format
@@ -21,23 +21,23 @@ def unpacker(_plistfile, _imagefile):
 		return -1
 
 	# check imagefile
-	if not _imagefile or _imagefile == "":
-		filepath,filename = os.path.split(_plistfile)
-		_imagefile = os.path.join(filepath , data.metadata.textureFileName)
+	if not image_file or image_file == "":
+		file_path,_ = os.path.split(plist_file)
+		image_file = os.path.join(file_path , data.metadata.textureFileName)
 
 	# create output dir
-	outpath,_ = os.path.splitext(_plistfile)
-	if not os.path.isdir(outpath):
-		os.mkdir(outpath)
+	out_path,_ = os.path.splitext(plist_file)
+	if not os.path.isdir(out_path):
+		os.mkdir(out_path)
 
-	src_image = Image.open(_imagefile)
+	src_image = Image.open(image_file)
 
 	for (name,config) in data.frames.items():
 		# parse config
-		frame           = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config.frame)
-		sourceColorRect = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config.sourceColorRect)
-		sourceSize      = parse("{{{w:d},{h:d}}",config.sourceSize)
-		rotated         = config.rotated
+		frame             = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config.frame)
+		source_color_rect = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config.sourceColorRect)
+		source_size       = parse("{{{w:d},{h:d}}",config.sourceSize)
+		rotated           = config.rotated
 
 		# create temp image
 		src_rect = (frame["x"],frame["y"],frame["x"]+(frame["h"] if rotated else frame["w"]),frame["y"]+(frame["w"] if rotated else frame["h"]))
@@ -46,8 +46,8 @@ def unpacker(_plistfile, _imagefile):
 			temp_image = temp_image.rotate(90)
 
 		# create dst image
-		dst_image = Image.new('RGBA', (sourceSize["w"], sourceSize["h"]), (0,0,0,0))
-		dst_image.paste(temp_image, (sourceColorRect["x"],sourceColorRect["y"]), mask=0)
+		dst_image = Image.new('RGBA', (source_size["w"], source_size["h"]), (0,0,0,0))
+		dst_image.paste(temp_image, (source_color_rect["x"],source_color_rect["y"]), mask=0)
 		dst_image.save(outpath + "/" + name)
 
 	return 0
@@ -57,16 +57,16 @@ def main():
 		print "example: python untp.py test.plist"
 		return -1
 
-	plistfile = ""
-	imagefile = ""
+	plist_file = ""
+	image_file = ""
 
 	if len(sys.argv) >= 2:
-		plistfile = sys.argv[1]
+		plist_file = sys.argv[1]
 
 	if len(sys.argv) >= 3:
-		imagefile = sys.argv[2]
+		image_file = sys.argv[2]
 
-	return unpacker(plistfile, imagefile)
+	return unpacker(plist_file, image_file)
 
 if __name__ == '__main__':
 	main()
