@@ -48,7 +48,7 @@ def unpacker(plist_file, image_file):
 		# create dst image
 		dst_image = Image.new('RGBA', (source_size["w"], source_size["h"]), (0,0,0,0))
 		dst_image.paste(temp_image, (source_color_rect["x"],source_color_rect["y"]), mask=0)
-		dst_image.save(outpath + "/" + name)
+		dst_image.save(out_path + "/" + name)
 
 	return 0
 
