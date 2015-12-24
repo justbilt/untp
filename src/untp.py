@@ -11,13 +11,13 @@ from plistlib import readPlist
 def unpacker(plist_file, image_file):
 	try:
 		data = readPlist(plist_file)
-	except Exception, e:
-		print "error: read plist file failed >", plist_file
+	except (Exception, e):
+		print ("error: read plist file failed >", plist_file)
 		return 1
 
 	# check file format
 	if data.metadata.format != 2:
-		print "error: only support format : 2, current is", data.metadata.format
+		print ("error: only support format : 2, current is", data.metadata.format)
 		return -1
 
 	# check imagefile
@@ -54,7 +54,7 @@ def unpacker(plist_file, image_file):
 
 def main():
 	if len(sys.argv) <= 1:
-		print "example: python untp.py test.plist"
+		print ("example: python untp.py test.plist")
 		return -1
 
 	plist_file = ""
