@@ -4,9 +4,23 @@
 
 import os
 import sys
+
 from PIL import Image
 from parse import parse
 from plistlib import readPlist
+
+pvr_file_ext = (".pvr", ".pvr.gz", ".pvr.ccz")
+def get_image_ext(image_file):
+	for ext in pvr_file_ext:
+		if image_file.endswith(ext):
+			return ext
+	return os.path.splitext(image_file)[1]
+
+def convert_pvr_to_png(image_file, image_ext):
+	pvr_path = image_file.replace(image_ext, "")
+	if os.system("TexturePacker {pvr_pathname} --sheet {pvr_path}.png --texture-format png --border-padding 0 --shape-padding 0 --disable-rotation --allow-free-size --no-trim --data {pvr_path}_temp.plist".format(pvr_pathname = image_file, pvr_path = pvr_path)) == 0:
+		return True
+	return False
 
 def unpacker(plist_file, image_file):
 	try:
@@ -24,6 +38,16 @@ def unpacker(plist_file, image_file):
 	if not image_file or image_file == "":
 		file_path,_ = os.path.split(plist_file)
 		image_file = os.path.join(file_path , data.metadata.textureFileName)
+
+	# check image format
+	image_ext = get_image_ext(image_file)
+	if image_ext in pvr_file_ext:
+		if convert_pvr_to_png(image_file, image_ext):
+			image_file = image_file.replace(image_ext, ".png")
+		else:
+			print ("error: can't not convert pvr to png, are you sure installed TexturePacker command line tools ? More infomation:\nhttps://www.codeandweb.com/texturepacker/documentation#install-command-line")
+			return -1
+
 
 	# create output dir
 	out_path,_ = os.path.splitext(plist_file)
