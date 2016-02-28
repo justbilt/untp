@@ -1,2 +1,5 @@
 *.pyc
 bin
+build
+dist
+untp.egg-info
