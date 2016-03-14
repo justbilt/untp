@@ -1,9 +1,10 @@
-[![Join the chat at https://gitter.im/justbilt/untp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/justbilt/untp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# A command line tool to split TexturePacker publish file.
+
+## How to use ?
 
 
-A command line tool to split TexturePacker publish file.
 
-# How to use ?
+`pip install untp`
 
 download latest binary file on [releases page](https://github.com/justbilt/untp/releases) !
 
