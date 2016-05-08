@@ -67,7 +67,7 @@ def unpacker(plist_file, image_file):
 		src_rect = (frame["x"],frame["y"],frame["x"]+(frame["h"] if rotated else frame["w"]),frame["y"]+(frame["w"] if rotated else frame["h"]))
 		temp_image = src_image.crop(src_rect)
 		if rotated:
-			temp_image = temp_image.rotate(90)
+			temp_image = temp_image.rotate(90, expand=1)
 
 		# create dst image
 		dst_image = Image.new('RGBA', (source_size["w"], source_size["h"]), (0,0,0,0))
