@@ -22,7 +22,7 @@ def convert_pvr_to_png(image_file, image_ext):
 		return True
 	return False
 
-def unpacker(plist_file, image_file):
+def unpacker(plist_file, image_file=None):
 	try:
 		data = readPlist(plist_file)
 	except (Exception, e):
@@ -76,10 +76,28 @@ def unpacker(plist_file, image_file):
 
 	return 0
 
+# Get the all files & directories in the specified directory (path).
+def get_recursive_plist_file_list(path):
+    current_files = os.listdir(path)
+    all_plist_files = []
+    for file_name in current_files:
+        full_file_name = os.path.join(path, file_name)
+        if full_file_name.endswith('.plist'):
+                all_plist_files.append(full_file_name)
+ 
+        if os.path.isdir(full_file_name):
+            next_level_plist_files = get_recursive_plist_file_list(full_file_name)
+            all_plist_files.extend(next_level_plist_files)
+ 
+    return all_plist_files
+    
 def main():
 	if len(sys.argv) <= 1:
-		print ("example: python untp.py test.plist")
-		return -1
+		currten_path = os.getcwd()
+        all_plist_file_list = get_recursive_plist_file_list(currten_path)
+        for plist_file in all_plist_file_list:
+            unpacker(plist_file)
+        return
 
 	plist_file = ""
 	image_file = ""
