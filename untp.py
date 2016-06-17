@@ -1,13 +1,22 @@
 #!/usr/bin/env python  
 # coding=utf-8  
 # Python 2.7.3  
+from __future__ import print_function
 
 import os
 import sys
+import argparse
 
 from PIL import Image
 from parse import parse
 from plistlib import readPlist
+
+usage = """
+%(prog)s ../btn.plist
+%(prog)s ../btn.plist -i ../btn.png
+%(prog)s ../data
+%(prog)s ../data -r
+"""
 
 pvr_file_ext = (".pvr", ".pvr.gz", ".pvr.ccz")
 def get_image_ext(image_file):
@@ -25,13 +34,13 @@ def convert_pvr_to_png(image_file, image_ext):
 def unpacker(plist_file, image_file=None):
 	try:
 		data = readPlist(plist_file)
-	except (Exception, e):
-		print ("error: read plist file failed >", plist_file)
+	except Exception, e:
+		print("fail: read plist file failed >", plist_file)
 		return 1
 
 	# check file format
 	if data.metadata.format != 2:
-		print ("error: only support format : 2, current is", data.metadata.format)
+		print("fail: only support format : 2, current is", data.metadata.format)
 		return -1
 
 	# check imagefile
@@ -45,7 +54,7 @@ def unpacker(plist_file, image_file=None):
 		if convert_pvr_to_png(image_file, image_ext):
 			image_file = image_file.replace(image_ext, ".png")
 		else:
-			print ("error: can't not convert pvr to png, are you sure installed TexturePacker command line tools ? More infomation:\nhttps://www.codeandweb.com/texturepacker/documentation#install-command-line")
+			print("fail: can't convert pvr to png, are you sure installed TexturePacker command line tools ? More infomation:\nhttps://www.codeandweb.com/texturepacker/documentation#install-command-line")
 			return -1
 
 
@@ -54,7 +63,11 @@ def unpacker(plist_file, image_file=None):
 	if not os.path.isdir(out_path):
 		os.mkdir(out_path)
 
-	src_image = Image.open(image_file)
+	try:
+		src_image = Image.open(image_file)
+	except Exception, e:
+		print("fail: can't open image %s " %image_file)
+		return -1
 
 	for (name,config) in data.frames.items():
 		# parse config
@@ -74,41 +87,35 @@ def unpacker(plist_file, image_file=None):
 		dst_image.paste(temp_image, (source_color_rect["x"],source_color_rect["y"]), mask=0)
 		dst_image.save(out_path + "/" + name)
 
+	print("success:", plist_file)
 	return 0
 
 # Get the all files & directories in the specified directory (path).
-def get_recursive_plist_file_list(path):
-    current_files = os.listdir(path)
-    all_plist_files = []
-    for file_name in current_files:
-        full_file_name = os.path.join(path, file_name)
-        if full_file_name.endswith('.plist'):
-                all_plist_files.append(full_file_name)
- 
-        if os.path.isdir(full_file_name):
-            next_level_plist_files = get_recursive_plist_file_list(full_file_name)
-            all_plist_files.extend(next_level_plist_files)
- 
-    return all_plist_files
+def unpacker_dir(path, recursive):
+    for name in os.listdir(path):
+        full_name = os.path.join(path, name)
+        if full_name.endswith('.plist'):
+            unpacker(full_name)
+        elif recursive and os.path.isdir(full_name):
+	        unpacker_dir(full_name, recursive)
     
 def main():
-	if len(sys.argv) <= 1:
-		currten_path = os.getcwd()
-        all_plist_file_list = get_recursive_plist_file_list(currten_path)
-        for plist_file in all_plist_file_list:
-            unpacker(plist_file)
-        return
 
-	plist_file = ""
-	image_file = ""
+	parser = argparse.ArgumentParser(prog="untp", usage=usage)
+	parser.add_argument("path", type=str, help="plist file name or directory")
 
-	if len(sys.argv) >= 2:
-		plist_file = sys.argv[1]
+	group_file = parser.add_argument_group('For file')
+	group_file.add_argument("-i", "--image_file", type=str, metavar="image_file", help="specified image file for plist")
 
-	if len(sys.argv) >= 3:
-		image_file = sys.argv[2]
+	group_dir = parser.add_argument_group('For directory')
+	group_dir.add_argument("-r", "--recursive", action="store_true", default=False)
 
-	return unpacker(plist_file, image_file)
+	argument = parser.parse_args()
+
+	if os.path.isdir(argument.path):
+		return unpacker_dir(argument.path, argument.recursive)
+	elif os.path.isfile(argument.path):
+		return unpacker(argument.path, argument.image_file)
 
 if __name__ == '__main__':
 	main()
