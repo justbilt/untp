@@ -1,24 +1,36 @@
-# A command line tool to split TexturePacker publish file.
+A command line tool to split TexturePacker publish file.
 
-## Install
-
-### 1. use pip
+### install
 
 `pip install untp`
 
-### 2. from source
+### update
 
-`git clone git@github.com:justbilt/untp.git`
+`pip install -U untp`
 
-`python setup.py install`
+### usage
+```
+$ untp -h
+usage:
+untp ../btn.plist
+untp ../btn.plist -i ../btn.png
+untp ../data
+untp ../data -r
 
-## How to use ?
+positional arguments:
+  path                  plist file name or directory
 
-`untp your_plist_file.plist`
+optional arguments:
+  -h, --help            show this help message and exit
 
-or
+For file:
+  -i image_file, --image_file image_file
+                        specified image file for plist
 
-`untp your_plist_file.plist your_image_file.png`
+For directory:
+  -r, --recursive
+```
+
 
 ---
 
