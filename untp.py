@@ -31,7 +31,7 @@ def convert_pvr_to_png(image_file, image_ext):
 		return True
 	return False
 
-def unpacker(plist_file, image_file=None):
+def unpacker(plist_file, image_file=None, output_dir=None):
 	try:
 		data = readPlist(plist_file)
 	except Exception, e:
@@ -59,9 +59,10 @@ def unpacker(plist_file, image_file=None):
 
 
 	# create output dir
-	out_path,_ = os.path.splitext(plist_file)
-	if not os.path.isdir(out_path):
-		os.mkdir(out_path)
+	if not output_dir:
+		output_dir,_ = os.path.splitext(plist_file)
+	if not os.path.isdir(output_dir):
+		os.mkdir(output_dir)
 
 	try:
 		src_image = Image.open(image_file)
@@ -85,7 +86,7 @@ def unpacker(plist_file, image_file=None):
 		# create dst image
 		dst_image = Image.new('RGBA', (source_size["w"], source_size["h"]), (0,0,0,0))
 		dst_image.paste(temp_image, (source_color_rect["x"],source_color_rect["y"]), mask=0)
-		dst_image.save(out_path + "/" + name)
+		dst_image.save(os.path.join(output_dir, name))
 
 	print("success:", plist_file)
 	return 0
@@ -106,6 +107,7 @@ def main():
 
 	group_file = parser.add_argument_group('For file')
 	group_file.add_argument("-i", "--image_file", type=str, metavar="image_file", help="specified image file for plist")
+	group_file.add_argument("-o", "--output", type=str, metavar="output", help="specified output directory")
 
 	group_dir = parser.add_argument_group('For directory')
 	group_dir.add_argument("-r", "--recursive", action="store_true", default=False)
@@ -115,7 +117,7 @@ def main():
 	if os.path.isdir(argument.path):
 		return unpacker_dir(argument.path, argument.recursive)
 	elif os.path.isfile(argument.path):
-		return unpacker(argument.path, argument.image_file)
+		return unpacker(argument.path, image_file = argument.image_file, output_dir = argument.output)
 
 if __name__ == '__main__':
 	main()
