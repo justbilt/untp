@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 import sys
 import argparse
+import dataparse
 
 from PIL import Image
 from parse import parse
@@ -39,8 +40,9 @@ def unpacker(plist_file, image_file=None, output_dir=None):
 		return 1
 
 	# check file format
-	if data.metadata.format != 2:
-		print("fail: only support format : 2, current is", data.metadata.format)
+	frame_data_list = dataparse.parsedata(data)
+	if not frame_data_list:
+		print("fail: unsupport format " + str(data.metadata.format))
 		return -1
 
 	# check imagefile
@@ -57,7 +59,6 @@ def unpacker(plist_file, image_file=None, output_dir=None):
 			print("fail: can't convert pvr to png, are you sure installed TexturePacker command line tools ? More infomation:\nhttps://www.codeandweb.com/texturepacker/documentation#install-command-line")
 			return -1
 
-
 	# create output dir
 	if not output_dir:
 		output_dir,_ = os.path.splitext(plist_file)
@@ -70,23 +71,15 @@ def unpacker(plist_file, image_file=None, output_dir=None):
 		print("fail: can't open image %s " %image_file)
 		return -1
 
-	for (name,config) in data.frames.items():
-		# parse config
-		frame             = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config.frame)
-		source_color_rect = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}",config.sourceColorRect)
-		source_size       = parse("{{{w:d},{h:d}}",config.sourceSize)
-		rotated           = config.rotated
-
-		# create temp image
-		src_rect = (frame["x"],frame["y"],frame["x"]+(frame["h"] if rotated else frame["w"]),frame["y"]+(frame["w"] if rotated else frame["h"]))
-		temp_image = src_image.crop(src_rect)
-		if rotated:
+	for frame_data in frame_data_list:
+		temp_image = src_image.crop(frame_data["src_rect"])
+		if frame_data["rotated"]:
 			temp_image = temp_image.rotate(90, expand=1)
 
 		# create dst image
-		dst_image = Image.new('RGBA', (source_size["w"], source_size["h"]), (0,0,0,0))
-		dst_image.paste(temp_image, (source_color_rect["x"],source_color_rect["y"]), mask=0)
-		dst_image.save(os.path.join(output_dir, name))
+		dst_image = Image.new('RGBA', frame_data["source_size"], (0,0,0,0))
+		dst_image.paste(temp_image, frame_data["offset"], mask=0)
+		dst_image.save(os.path.join(output_dir, frame_data["name"]))
 
 	print("success:", plist_file)
 	return 0
