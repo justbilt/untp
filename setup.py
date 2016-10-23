@@ -15,10 +15,11 @@ setup(
     url = 'https://github.com/justbilt/untp',
     author = 'justbilt',
     author_email = 'wangbilt@gmail.com',
-    scripts=['untp.py'],
-    entry_points={
+    packages = find_packages("src"),
+    package_dir = {'':'src'},
+    entry_points = {
         'console_scripts': [
-            'untp = untp:main',
+            'untp = untp.untp:main',
         ],
     }
 )
