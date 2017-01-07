@@ -1,3 +1,5 @@
+[Chinese Readme](http://blog.justbilt.com/2016/10/29/untp-2/)
+
 A command line tool to split TexturePacker publish file.
 
 ### install
