@@ -9,10 +9,9 @@ import argparse
 import dataparse
 import tempfile
 import shutil
+import json
 
 from PIL import Image
-from parse import parse
-from plistlib import readPlist
 
 usage = """
 %(prog)s ../btn.plist
@@ -40,23 +39,18 @@ def convert_pvr_to_png(image_file):
 
 	return None
 
-def unpacker(plist_file, image_file=None, output_dir=None):
-	try:
-		data = readPlist(plist_file)
-	except Exception, e:
-		print("fail: read plist file failed >", plist_file)
-		return 1
-
-	# check file format
-	frame_data_list = dataparse.parsedata(data)
-	if not frame_data_list:
-		print("fail: unsupport format " + str(data.metadata.format))
+def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_data_receiver=None):
+	# parse file
+	data = dataparse.parse_file(data_file, config, extra_data_receiver)
+	frame_data_list = data.get("frames") if data else None
+	if not data or not frame_data_list:
+		print("fail: unknown file type:" + data_file)
 		return -1
 
 	# check imagefile
-	if not image_file or image_file == "":
-		file_path,_ = os.path.split(plist_file)
-		image_file = os.path.join(file_path , data.metadata.textureFileName)
+	if not image_file:
+		file_path,_ = os.path.split(data_file)
+		image_file = os.path.join(file_path , data["texture"])
 
 	# check image format
 	image_ext = get_image_ext(image_file)
@@ -70,7 +64,7 @@ def unpacker(plist_file, image_file=None, output_dir=None):
 
 	# create output dir
 	if not output_dir:
-		output_dir,_ = os.path.splitext(plist_file)
+		output_dir,_ = os.path.splitext(data_file)
 	if not os.path.isdir(output_dir):
 		os.mkdir(output_dir)
 
@@ -94,14 +88,15 @@ def unpacker(plist_file, image_file=None, output_dir=None):
 			os.makedirs(os.path.dirname(output_path))
 		dst_image.save(output_path)
 
-	print("success:", plist_file)
+	print("success:", data_file)
 	return 0
 
 # Get the all files & directories in the specified directory (path).
 def unpacker_dir(path, recursive):
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
-        if full_name.endswith('.plist'):
+        pre,ext = os.path.splitext(name)
+        if ext in ('.plist', ".fnt"):
             unpacker(full_name)
         elif recursive and os.path.isdir(full_name):
 	        unpacker_dir(full_name, recursive)
@@ -109,7 +104,7 @@ def unpacker_dir(path, recursive):
 def main():
 
 	parser = argparse.ArgumentParser(prog="untp", usage=usage)
-	parser.add_argument("path", type=str, help="plist file name or directory")
+	parser.add_argument("path", type=str, help="plist/fnt file name or directory")
 
 	group_file = parser.add_argument_group('For file')
 	group_file.add_argument("-i", "--image_file", type=str, metavar="image_file", help="specified image file for plist")
