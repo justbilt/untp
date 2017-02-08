@@ -79,7 +79,11 @@ def unpacker(plist_file, image_file=None, output_dir=None):
 		# create dst image
 		dst_image = Image.new('RGBA', frame_data["source_size"], (0,0,0,0))
 		dst_image.paste(temp_image, frame_data["offset"], mask=0)
-		dst_image.save(os.path.join(output_dir, frame_data["name"]))
+
+		output_path = os.path.join(output_dir, frame_data["name"])
+		if not os.path.exists(os.path.dirname(output_path)):
+			os.makedirs(os.path.dirname(output_path))
+		dst_image.save(output_path)
 
 	print("success:", plist_file)
 	return 0
