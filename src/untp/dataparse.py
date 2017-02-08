@@ -17,9 +17,9 @@ def parsedata(_data):
 	for (name,config) in _data.frames.items():
 		frame_data = {}
 		if fmt == 2:
-			frame         = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}", config.frame)
-			center_offset = parse("{{{x:d},{y:d}}}", config.offset)
-			source_size   = parse("{{{w:d},{h:d}}}", config.sourceSize)
+			frame         = parse("{{{{{x:g},{y:g}}},{{{w:g},{h:g}}}}}", config.frame)
+			center_offset = parse("{{{x:g},{y:g}}}", config.offset)
+			source_size   = parse("{{{w:g},{h:g}}}", config.sourceSize)
 			rotated       = config.rotated
 			src_rect      = (
 				frame["x"],
@@ -32,9 +32,9 @@ def parsedata(_data):
 				"y": source_size["h"]/2 - center_offset["y"] - frame["h"]/2,
 			}
 		elif fmt == 3:
-			frame         = parse("{{{{{x:d},{y:d}}},{{{w:d},{h:d}}}}}", config.textureRect)
-			center_offset = parse("{{{x:d},{y:d}}}", config.spriteOffset)
-			source_size   = parse("{{{w:d},{h:d}}}", config.spriteSourceSize)
+			frame         = parse("{{{{{x:g},{y:g}}},{{{w:g},{h:g}}}}}", config.textureRect)
+			center_offset = parse("{{{x:g},{y:g}}}", config.spriteOffset)
+			source_size   = parse("{{{w:g},{h:g}}}", config.spriteSourceSize)
 			rotated       = config.textureRotated
 			src_rect      = (
 				frame["x"],
@@ -50,10 +50,10 @@ def parsedata(_data):
 			continue
 
 		frame_data["name"]        = name
-		frame_data["source_size"] = (source_size["w"], source_size["h"])
+		frame_data["source_size"] = (int(source_size["w"]), int(source_size["h"]))
 		frame_data["rotated"]     = rotated
-		frame_data["src_rect"]    = src_rect
-		frame_data["offset"]      = (offset["x"], offset["y"])
+		frame_data["src_rect"]    = [int(x) for x in src_rect ]
+		frame_data["offset"]      = (int(offset["x"]), int(offset["y"]))
 
 		frame_data_list.append(frame_data)
 
