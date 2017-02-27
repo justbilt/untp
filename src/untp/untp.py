@@ -7,6 +7,8 @@ import os
 import sys
 import argparse
 import dataparse
+import tempfile
+import shutil
 
 from PIL import Image
 from parse import parse
@@ -26,11 +28,17 @@ def get_image_ext(image_file):
 			return ext
 	return os.path.splitext(image_file)[1]
 
-def convert_pvr_to_png(image_file, image_ext):
-	pvr_path = image_file.replace(image_ext, "")
-	if os.system("TexturePacker {pvr_pathname} --sheet {pvr_path}.png --texture-format png --border-padding 0 --shape-padding 0 --disable-rotation --allow-free-size --no-trim --data {pvr_path}_temp.plist".format(pvr_pathname = image_file, pvr_path = pvr_path)) == 0:
-		return True
-	return False
+def convert_pvr_to_png(image_file):
+	temp_dir = tempfile.mkdtemp()
+
+	shutil.copyfile(image_file, os.path.join(temp_dir, os.path.basename(image_file)))
+	image_path = os.path.join(temp_dir, "temp.png")
+	plist_path = os.path.join(temp_dir, "temp.plist")
+
+	if os.system("TexturePacker {temp_dir} --sheet {image_path} --texture-format png --border-padding 0 --shape-padding 0 --disable-rotation --allow-free-size --no-trim --data {plist_path}".format(temp_dir = temp_dir, image_path = image_path, plist_path = plist_path)) == 0:
+		return image_path
+
+	return None
 
 def unpacker(plist_file, image_file=None, output_dir=None):
 	try:
@@ -53,8 +61,9 @@ def unpacker(plist_file, image_file=None, output_dir=None):
 	# check image format
 	image_ext = get_image_ext(image_file)
 	if image_ext in pvr_file_ext:
-		if convert_pvr_to_png(image_file, image_ext):
-			image_file = image_file.replace(image_ext, ".png")
+		new_image_file = convert_pvr_to_png(image_file)
+		if new_image_file:
+			image_file = new_image_file
 		else:
 			print("fail: can't convert pvr to png, are you sure installed TexturePacker command line tools ? More infomation:\nhttps://www.codeandweb.com/texturepacker/documentation#install-command-line")
 			return -1
