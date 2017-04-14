@@ -142,4 +142,4 @@ def parse_plistdata(_data):
 	data["frames"] = frame_data_list
 	data["texture"] = _data.metadata.textureFileName
 
-	return frame_data_list
+	return data
