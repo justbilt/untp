@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'untp',
-    version = '1.0.6',
+    version = '1.0.7',
     keywords = ('untp', 'texturepacker'),
     description = 'A command line tool to split TexturePacker publish file.',
     license = 'MIT License',
