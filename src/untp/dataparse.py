@@ -88,8 +88,8 @@ def parse_fntdata(_data, _config, _extra_data_receiver=None):
 def parse_plistdata(_data):
 	fmt = _data.metadata.format
 	# check file format
-	if fmt not in (2,3):
-		print("fail: unsupport format " + fmt)
+	if fmt not in (1, 2, 3):
+		print("fail: unsupport format " + str(fmt))
 		return None
 
 	data = {}
@@ -97,11 +97,11 @@ def parse_plistdata(_data):
 
 	for (name,config) in _data.frames.items():
 		frame_data = {}
-		if fmt == 2:
+		if fmt == 1 or fmt == 2:
 			frame         = parse("{{{{{x:g},{y:g}}},{{{w:g},{h:g}}}}}", config.frame)
 			center_offset = parse("{{{x:g},{y:g}}}", config.offset)
 			source_size   = parse("{{{w:g},{h:g}}}", config.sourceSize)
-			rotated       = config.rotated
+			rotated       = config.get("rotated", False)
 			src_rect      = (
 				frame["x"],
 				frame["y"],
