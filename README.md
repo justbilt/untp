@@ -1,6 +1,6 @@
-[Chinese Readme](http://blog.justbilt.com/2016/10/29/untp-2/)
+[中文说明](http://blog.justbilt.com/2016/10/29/untp-2/)
 
-A command line tool to split TexturePacker publish file.
+A command line tool to split TexturePacker published files.
 
 ### install
 
@@ -36,5 +36,5 @@ For directory:
 
 ---
 
-If you have any question, pleast make a [issue](https://github.com/justbilt/untp/issues), thanks!
+If you have any question, just make a [issue](https://github.com/justbilt/untp/issues), thanks!
 

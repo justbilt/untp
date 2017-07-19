@@ -6,7 +6,7 @@ setup(
     name = 'untp',
     version = '1.0.8',
     keywords = ('untp', 'texturepacker'),
-    description = 'A command line tool to split TexturePacker publish file.',
+    description = 'A command line tool to split TexturePacker published files.',
     license = 'MIT License',
     install_requires = [
         'Pillow',
