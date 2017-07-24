@@ -3,9 +3,9 @@
 # Python 2.7.3  
 
 import os
+import json
 from parse import parse
 from plistlib import readPlist
-from parse import parse
 from pprint import pprint
 
 def parse_file(_filepath, _config=None, _extra_data_receiver=None):
@@ -85,6 +85,18 @@ def parse_fntdata(_data, _config, _extra_data_receiver=None):
 	return data
 
 
+def _mapping_list(_result, _name, _data):
+	for i,v in enumerate(_name):
+		if isinstance(v, list):
+			_mapping_list(_result, v, _data[i])
+		else:
+			_result[v] = _data[i]
+
+	return _result
+
+def _parse_str(_name, _str):
+	return _mapping_list({}, _name, json.loads(_str.replace("{", "[").replace("}", "]")))
+
 def parse_plistdata(_data):
 	fmt = _data.metadata.format
 	# check file format
@@ -98,9 +110,9 @@ def parse_plistdata(_data):
 	for (name,config) in _data.frames.items():
 		frame_data = {}
 		if fmt == 1 or fmt == 2:
-			frame         = parse("{{{{{x:g},{y:g}}},{{{w:g},{h:g}}}}}", config.frame)
-			center_offset = parse("{{{x:g},{y:g}}}", config.offset)
-			source_size   = parse("{{{w:g},{h:g}}}", config.sourceSize)
+			frame         = _parse_str([["x","y"],["w","h"]], config.frame)
+			center_offset = _parse_str(["x","y"], config.offset)
+			source_size   = _parse_str(["w","h"], config.sourceSize)
 			rotated       = config.get("rotated", False)
 			src_rect      = (
 				frame["x"],
@@ -113,9 +125,9 @@ def parse_plistdata(_data):
 				"y": source_size["h"]/2 - center_offset["y"] - frame["h"]/2,
 			}
 		elif fmt == 3:
-			frame         = parse("{{{{{x:g},{y:g}}},{{{w:g},{h:g}}}}}", config.textureRect)
-			center_offset = parse("{{{x:g},{y:g}}}", config.spriteOffset)
-			source_size   = parse("{{{w:g},{h:g}}}", config.spriteSourceSize)
+			frame         = _parse_str([["x","y"],["w","h"]], config.textureRect)
+			center_offset = _parse_str(["x","y"], config.spriteOffset)
+			source_size   = _parse_str(["w","h"], config.spriteSourceSize)
 			rotated       = config.textureRotated
 			src_rect      = (
 				frame["x"],
