@@ -100,7 +100,7 @@ def _parse_str(_name, _str):
 def parse_plistdata(_data):
 	fmt = _data.metadata.format
 	# check file format
-	if fmt not in (1, 2, 3):
+	if fmt not in (0, 1, 2, 3):
 		print("fail: unsupport format " + str(fmt))
 		return None
 
@@ -109,7 +109,23 @@ def parse_plistdata(_data):
 
 	for (name,config) in _data.frames.items():
 		frame_data = {}
-		if fmt == 1 or fmt == 2:
+		if fmt == 0:
+			source_size = {
+				"w": config.get("originalWidth", 0),
+				"h": config.get("originalHeight", 0),
+			}
+			rotated = False
+			src_rect = (
+				config.get("x", 0),
+				config.get("y", 0),
+				config.get("x", 0) + config.get("originalWidth", 0),
+				config.get("y", 0) + config.get("originalHeight", 0),
+			)
+			offset = {
+				"x": config.get("offsetX", False),
+				"y": config.get("offsetY", False),
+			}
+		elif fmt == 1 or fmt == 2:
 			frame         = _parse_str([["x","y"],["w","h"]], config.frame)
 			center_offset = _parse_str(["x","y"], config.offset)
 			source_size   = _parse_str(["w","h"], config.sourceSize)
