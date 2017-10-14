@@ -14,7 +14,7 @@ def parse_file(_filepath, _config=None, _extra_data_receiver=None):
 	if ext == ".plist":
 		try:
 			data = readPlist(_filepath)
-		except Exception, e:
+		except Exception:
 			print("fail: read plist file failed >", _filepath)
 			return
 		return parse_plistdata(data)

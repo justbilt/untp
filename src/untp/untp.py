@@ -81,7 +81,7 @@ def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_dat
 
     try:
         src_image = Image.open(image_file)
-    except Exception, e:
+    except Exception:
         log("fail: can't open image %s " %image_file)
         return -1
 
@@ -119,9 +119,15 @@ def unpacker_dir(path, recursive, output=None):
     return output
     
 def gui():
-    import Tkinter as tk
-    import ttk
-    import tkFileDialog
+    try:
+        import Tkinter as tk
+        import ttk
+        import tkFileDialog
+    except Exception:
+        import tkinter as tk
+        import tkinter.ttk as ttk
+        import tkinter.filedialog as tkFileDialog
+        
 
     class Application(tk.Frame):
         def __init__(self, root=None):
@@ -212,7 +218,7 @@ def gui():
     app.mainloop()
     try:
         root.destroy()
-    except Exception as e:
+    except Exception:
         pass
 
 def main():
