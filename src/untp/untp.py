@@ -91,7 +91,7 @@ def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_dat
             temp_image = temp_image.rotate(90, expand=1)
 
         # create dst image
-        dst_image = Image.new('RGBA', frame_data["source_size"], (0,0,0,0))
+        dst_image = Image.new(src_image.mode, frame_data["source_size"], (0,0,0,0))
         dst_image.paste(temp_image, frame_data["offset"], mask=0)
 
         output_path = os.path.join(output_dir, frame_data["name"])
