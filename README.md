@@ -2,6 +2,8 @@
 
 A command line tool to split TexturePacker published files.
 
+![][1]
+
 ### install
 
 `pip install untp`
@@ -38,3 +40,5 @@ For directory:
 
 If you have any question, just make a [issue](https://github.com/justbilt/untp/issues), thanks!
 
+
+[1]: /screenshot/mac.png
