@@ -77,7 +77,10 @@ def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_dat
     if not output_dir:
         output_dir,_ = os.path.splitext(data_file)
     if not os.path.isdir(output_dir):
-        os.mkdir(output_dir)
+        if os.path.exists(os.path.dirname(output_dir)):
+            os.mkdir(output_dir)
+        else:
+            os.makedirs(output_dir)
 
     try:
         src_image = Image.open(image_file)
@@ -103,7 +106,7 @@ def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_dat
     return 0
 
 # Get the all files & directories in the specified directory (path).
-def unpacker_dir(path, recursive, output=None):
+def unpacker_dir(path, recursive, output_dir=None, output=None):
     if output == None:
         output = list()
 
@@ -112,9 +115,9 @@ def unpacker_dir(path, recursive, output=None):
         pre,ext = os.path.splitext(name)
         if ext in ('.plist', ".fnt"):
             output.append(full_name)
-            unpacker(full_name)
+            unpacker(full_name, output_dir=os.path.join(output_dir, pre) if output_dir else None)
         elif recursive and os.path.isdir(full_name):
-            unpacker_dir(full_name, recursive, output)
+            unpacker_dir(full_name, recursive, os.path.join(output_dir, name) if output_dir else None, output)
 
     return output
     
@@ -225,10 +228,10 @@ def main():
 
     parser = argparse.ArgumentParser(prog="untp", usage=usage)
     parser.add_argument("path", type=str, help="plist/fnt file name or directory")
+    parser.add_argument("-o", "--output", type=str, metavar="output", help="specified output directory")
 
     group_file = parser.add_argument_group('For file')
     group_file.add_argument("-i", "--image_file", type=str, metavar="image_file", help="specified image file for plist")
-    group_file.add_argument("-o", "--output", type=str, metavar="output", help="specified output directory")
 
     group_dir = parser.add_argument_group('For directory')
     group_dir.add_argument("-r", "--recursive", action="store_true", default=False)
@@ -237,7 +240,7 @@ def main():
         argument = parser.parse_args()
 
         if os.path.isdir(argument.path):
-            return unpacker_dir(argument.path, argument.recursive)
+            return unpacker_dir(argument.path, argument.recursive, output_dir = argument.output)
         elif os.path.isfile(argument.path):
             return unpacker(argument.path, image_file = argument.image_file, output_dir = argument.output)
     else:
