@@ -30,13 +30,13 @@ class TestUnpackPlist(unittest.TestCase):
 		if os.path.exists(TEMP_PATH):
 			shutil.rmtree(TEMP_PATH)
 
-	def _test_unpack(self, _plist, _output, _size_field="sourceSize"):
+	def _test_unpack(self, _plist, _output, _size_field="{sourceSize}"):
 		data = plistlib.readPlist(_plist)
 		for k,v in data.frames.iteritems():
 			clip_path = os.path.join(_output, k)
 			self.assertTrue(os.path.exists(clip_path))
 			src_image = Image.open(clip_path)
-			self.assertEqual(v[_size_field], "{%s,%d}" %(src_image.size))
+			self.assertEqual(_size_field.format(**v), "{%s,%d}" %(src_image.size))
 
 	def setUp(self):
 		self._cleanUp()
@@ -44,6 +44,11 @@ class TestUnpackPlist(unittest.TestCase):
 
 	def tearDown(self):
 		self._cleanUp()
+
+	def test_unpack_f0(self):
+		"""Test unpack plist that format is 1"""
+		untp.unpacker(ipath("v0.plist"), ipath("v0.png"), opath("v0"))
+		self._test_unpack(ipath("v0.plist"), opath("v0"), _size_field="{{{originalWidth},{originalHeight}}}")
 
 	def test_unpack_f1(self):
 		"""Test unpack plist that format is 1"""
@@ -58,14 +63,15 @@ class TestUnpackPlist(unittest.TestCase):
 	def test_unpack_f3(self):
 		"""Test unpack plist that format is 3"""
 		untp.unpacker(ipath("subdir", "v3.plist"), ipath("subdir", "v3.png"), opath("v3"))
-		self._test_unpack(ipath("subdir", "v3.plist"), opath("v3"), _size_field="spriteSourceSize")		
+		self._test_unpack(ipath("subdir", "v3.plist"), opath("v3"), _size_field="{spriteSourceSize}")		
 		
 	def test_unpack_dir(self):
 		"""Test unpack directory"""
 		untp.unpacker_dir(DATA_PATH, True, output_dir=TEMP_PATH)
+		self._test_unpack(ipath("v0.plist"), opath("v0"), _size_field="{{{originalWidth},{originalHeight}}}")
 		self._test_unpack(ipath("v1.plist"), opath("v1"))
 		self._test_unpack(ipath("v2.plist"), opath("v2"))
-		self._test_unpack(ipath("subdir", "v3.plist"), opath("subdir", "v3"), _size_field="spriteSourceSize")		
+		self._test_unpack(ipath("subdir", "v3.plist"), opath("subdir", "v3"), _size_field="{spriteSourceSize}")		
 
 	def test_unpack_fnt(self):
 		"""Test unpack plist that format is 1"""
