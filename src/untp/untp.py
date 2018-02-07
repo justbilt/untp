@@ -99,6 +99,9 @@ def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_dat
         dst_image.paste(temp_image, frame_data["offset"], mask=0)
 
         output_path = os.path.join(output_dir, frame_data["name"])
+        pre,ext = os.path.splitext(output_path)
+        if not ext:
+            output_path = output_path + "." + image_ext
         if not os.path.exists(os.path.dirname(output_path)):
             os.makedirs(os.path.dirname(output_path))
         dst_image.save(output_path)
