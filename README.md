@@ -12,6 +12,8 @@ A command line tool to split TexturePacker published files.
 
 `pip install -U untp`
 
+Windows: [portable](http://7xnfpc.com1.z0.glb.clouddn.com/untp-1.1.5.zip)
+
 ### usage
 ```
 $ untp -h
