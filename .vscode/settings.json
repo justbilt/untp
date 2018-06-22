@@ -1,0 +1,10 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/*.pyc": true,
+        "screenshot": true,
+        "build": true,
+        "library": true,
+        "dist": true
+    }
+}
