@@ -140,13 +140,14 @@ def _is_protectionn_pvr(image_file):
 
     return False        
 
-def convert_pvr_to_png(image_file, protection_key=None):
+def convert_pvr_to_png(logger, image_file, protection_key=None):
     temp_dir = tempfile.mkdtemp()
     temp_pvr = os.path.join(temp_dir, os.path.basename(image_file))
     shutil.copyfile(image_file, temp_pvr)
 
     if _is_protectionn_pvr(temp_pvr):
         if not protection_key:
+            logger("error: missing protection key for encrypted image:" + image_file)
             return None
         _decrypt_pvr(temp_pvr, temp_pvr, protection_key)
 
@@ -157,9 +158,10 @@ def convert_pvr_to_png(image_file, protection_key=None):
     child = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
     _, err = child.communicate()
     if err:
-        print("------------------------------")
-        print(err.strip())
-        print("------------------------------")
+        logger("------------------------------")
+        logger(err.strip())
+        logger("error: can't convert pvr to png, are you sure installed TexturePacker command line tools ? More infomation:\nhttps://www.codeandweb.com/texturepacker/documentation#install-command-line")
+        logger("------------------------------")
 
     if child.returncode == 0:
         return image_path

@@ -25,7 +25,6 @@ support_file_ext = (".png", ".jpg", ) + pvr_file_ext
 
 logger = None
 
-
 def log(text):
     if logger:
         logger(text)
@@ -54,11 +53,11 @@ def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_dat
     # check image format
     image_ext = get_image_ext(image_file)
     if image_ext in pvr_file_ext:
-        new_image_file = pvr.convert_pvr_to_png(image_file, protection_key)
+        new_image_file = pvr.convert_pvr_to_png(logger, image_file, protection_key)
         if new_image_file:
             image_file = new_image_file
         else:
-            log("fail: can't convert pvr to png, are you sure installed TexturePacker command line tools ? More infomation:\nhttps://www.codeandweb.com/texturepacker/documentation#install-command-line")
+            log("fail: can't convert pvr to png")
             return -1
 
     # create output dir
@@ -135,20 +134,27 @@ def gui():
             self.center()
 
         def createWidgets(self):
-
             frame = tk.Frame(self)
             for row in range(0, 2):
                 tk.Grid.rowconfigure(frame, row, weight=1)
             for col in range(0, 2):
                 tk.Grid.columnconfigure(frame, col, weight=1)
+            
             tk.Button(frame, width=20, text="Unpack Files", command=self.select_file).grid(row=0, column=0, sticky=("N", "S", "E", "W"))
             tk.Button(frame, width=20, text="Unpack Directory", command=self.select_directory).grid(row=0, column=1, sticky=("N", "S", "E", "W"))
+            
+            protection = tk.Frame(frame)    
+            tk.Label(protection, text="Protection Key:").pack(side=tk.LEFT)
+            self.protection_var = tk.StringVar()
+            tk.Entry(protection, textvariable=self.protection_var).pack(side=tk.LEFT, fill=tk.X, expand=True)
+            protection.grid(row=1, column=0, sticky=("N", "S", "E", "W"))
+                        
             self.recursive_var = tk.IntVar(0)
             self.recursive_var.set(1)
-            tk.Checkbutton(frame, text="Recursive", variable=self.recursive_var).grid(row=1, column=1, sticky=tk.W)
-            frame.pack(fill="x")
+            tk.Checkbutton(frame, text="Recursive", variable=self.recursive_var).grid(row=1, column=1, sticky=tk.E)
 
-            ttk.Separator(self).pack(fill="x")
+            frame.pack(fill=tk.X)
+            ttk.Separator(self).pack(fill=tk.X)
 
             frame = tk.Frame(self)
             scrollbar = tk.Scrollbar(frame) 
@@ -179,9 +185,10 @@ def gui():
             if not path:
                 return
             self.last_path = path
-            unpacker_dir(path, self.recursive_var.get() == 1)
+            unpacker_dir(path, self.recursive_var.get() == 1, protection_key=self.protection_var.get())
 
         def select_file(self):
+            protection_key = self.protection_var.get()
             path = tkFileDialog.askopenfilenames(initialdir=self.last_path)
             file_list = self.root.tk.splitlist(path)
             if not file_list:
@@ -197,7 +204,7 @@ def gui():
                         if (pre + ext) in file_list:
                             image_file = pre + ext
 
-                    unpacker(v, image_file = image_file)
+                    unpacker(v, image_file=image_file, protection_key=protection_key)
 
     root = tk.Tk()
     app = Application(root)
