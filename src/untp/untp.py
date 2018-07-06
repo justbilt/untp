@@ -6,10 +6,10 @@ from __future__ import print_function
 import os
 import sys
 import argparse
-import dataparse
-import tempfile
-import shutil
 import json
+
+import dataparse
+import pvr
 
 from PIL import Image
 
@@ -25,7 +25,6 @@ support_file_ext = (".png", ".jpg", ) + pvr_file_ext
 
 logger = None
 
-
 def log(text):
     if logger:
         logger(text)
@@ -38,19 +37,7 @@ def get_image_ext(image_file):
             return ext
     return os.path.splitext(image_file)[1]
 
-def convert_pvr_to_png(image_file):
-    temp_dir = tempfile.mkdtemp()
-
-    shutil.copyfile(image_file, os.path.join(temp_dir, os.path.basename(image_file)))
-    image_path = os.path.join(temp_dir, "temp.png")
-    plist_path = os.path.join(temp_dir, "temp.plist")
-
-    if os.system("TexturePacker {temp_dir} --sheet {image_path} --texture-format png --border-padding 0 --shape-padding 0 --disable-rotation --allow-free-size --no-trim --data {plist_path}".format(temp_dir = temp_dir, image_path = image_path, plist_path = plist_path)) == 0:
-        return image_path
-
-    return None
-
-def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_data_receiver=None):
+def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_data_receiver=None, protection_key=None):
     # parse file
     data = dataparse.parse_file(data_file, config, extra_data_receiver)
     frame_data_list = data.get("frames") if data else None
@@ -66,11 +53,11 @@ def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_dat
     # check image format
     image_ext = get_image_ext(image_file)
     if image_ext in pvr_file_ext:
-        new_image_file = convert_pvr_to_png(image_file)
+        new_image_file = pvr.convert_pvr_to_png(logger, image_file, protection_key)
         if new_image_file:
             image_file = new_image_file
         else:
-            log("fail: can't convert pvr to png, are you sure installed TexturePacker command line tools ? More infomation:\nhttps://www.codeandweb.com/texturepacker/documentation#install-command-line")
+            log("fail: can't convert pvr to png")
             return -1
 
     # create output dir
@@ -110,7 +97,7 @@ def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_dat
     return 0
 
 # Get the all files & directories in the specified directory (path).
-def unpacker_dir(path, recursive, output_dir=None, output=None):
+def unpacker_dir(path, recursive, output_dir=None, output=None, protection_key=None):
     if output == None:
         output = list()
 
@@ -119,9 +106,9 @@ def unpacker_dir(path, recursive, output_dir=None, output=None):
         pre,ext = os.path.splitext(name)
         if ext in ('.plist', ".fnt"):
             output.append(full_name)
-            unpacker(full_name, output_dir=os.path.join(output_dir, pre) if output_dir else None)
+            unpacker(full_name, output_dir=os.path.join(output_dir, pre) if output_dir else None, protection_key=protection_key)
         elif recursive and os.path.isdir(full_name):
-            unpacker_dir(full_name, recursive, os.path.join(output_dir, name) if output_dir else None, output)
+            unpacker_dir(full_name, recursive, os.path.join(output_dir, name) if output_dir else None, output, protection_key)
 
     return output
     
@@ -147,20 +134,27 @@ def gui():
             self.center()
 
         def createWidgets(self):
-
             frame = tk.Frame(self)
             for row in range(0, 2):
                 tk.Grid.rowconfigure(frame, row, weight=1)
             for col in range(0, 2):
                 tk.Grid.columnconfigure(frame, col, weight=1)
+            
             tk.Button(frame, width=20, text="Unpack Files", command=self.select_file).grid(row=0, column=0, sticky=("N", "S", "E", "W"))
             tk.Button(frame, width=20, text="Unpack Directory", command=self.select_directory).grid(row=0, column=1, sticky=("N", "S", "E", "W"))
+            
+            protection = tk.Frame(frame)    
+            tk.Label(protection, text="Protection Key:").pack(side=tk.LEFT)
+            self.protection_var = tk.StringVar()
+            tk.Entry(protection, textvariable=self.protection_var).pack(side=tk.LEFT, fill=tk.X, expand=True)
+            protection.grid(row=1, column=0, sticky=("N", "S", "E", "W"))
+                        
             self.recursive_var = tk.IntVar(0)
             self.recursive_var.set(1)
-            tk.Checkbutton(frame, text="Recursive", variable=self.recursive_var).grid(row=1, column=1, sticky=tk.W)
-            frame.pack(fill="x")
+            tk.Checkbutton(frame, text="Recursive", variable=self.recursive_var).grid(row=1, column=1, sticky=tk.E)
 
-            ttk.Separator(self).pack(fill="x")
+            frame.pack(fill=tk.X)
+            ttk.Separator(self).pack(fill=tk.X)
 
             frame = tk.Frame(self)
             scrollbar = tk.Scrollbar(frame) 
@@ -191,9 +185,10 @@ def gui():
             if not path:
                 return
             self.last_path = path
-            unpacker_dir(path, self.recursive_var.get() == 1)
+            unpacker_dir(path, self.recursive_var.get() == 1, protection_key=self.protection_var.get())
 
         def select_file(self):
+            protection_key = self.protection_var.get()
             path = tkFileDialog.askopenfilenames(initialdir=self.last_path)
             file_list = self.root.tk.splitlist(path)
             if not file_list:
@@ -209,7 +204,7 @@ def gui():
                         if (pre + ext) in file_list:
                             image_file = pre + ext
 
-                    unpacker(v, image_file = image_file)
+                    unpacker(v, image_file=image_file, protection_key=protection_key)
 
     root = tk.Tk()
     app = Application(root)
@@ -229,10 +224,10 @@ def gui():
         pass
 
 def main():
-
     parser = argparse.ArgumentParser(prog="untp", usage=usage)
     parser.add_argument("path", type=str, help="plist/fnt file name or directory")
     parser.add_argument("-o", "--output", type=str, metavar="output", help="specified output directory")
+    parser.add_argument("-p", "--protection", type=str, metavar="protection", help="specified protection key")
 
     group_file = parser.add_argument_group('For file')
     group_file.add_argument("-i", "--image_file", type=str, metavar="image_file", help="specified image file for plist")
