@@ -53,7 +53,7 @@ def unpacker(data_file, image_file=None, output_dir=None, config=None, extra_dat
     # check image format
     image_ext = get_image_ext(image_file)
     if image_ext in pvr_file_ext:
-        new_image_file = pvr.convert_pvr_to_png(logger, image_file, protection_key)
+        new_image_file = pvr.convert_pvr_to_png(log, image_file, protection_key)
         if new_image_file:
             image_file = new_image_file
         else:
@@ -239,9 +239,9 @@ def main():
         argument = parser.parse_args()
 
         if os.path.isdir(argument.path):
-            return unpacker_dir(argument.path, argument.recursive, output_dir = argument.output)
+            return unpacker_dir(argument.path, argument.recursive, output_dir = argument.output, protection_key = argument.protection)
         elif os.path.isfile(argument.path):
-            return unpacker(argument.path, image_file = argument.image_file, output_dir = argument.output)
+            return unpacker(argument.path, image_file = argument.image_file, output_dir = argument.output, protection_key = argument.protection)
     else:
         gui()
 
