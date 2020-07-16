@@ -8,8 +8,15 @@ import sys
 import argparse
 import json
 
-import dataparse
-import pvr
+try:
+    from . import dataparse
+except:
+    import dataparse
+
+try:
+    from . import pvr
+except:
+    import pvr
 
 from PIL import Image
 
